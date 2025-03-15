@@ -1,0 +1,46 @@
+# FROM nvidia/cuda:12.1.1-runtime-ubuntu20.04
+FROM nvidia/cuda:12.8.0-devel-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Python3
+RUN apt-get update && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y \
+        python3.12 \
+        python3.12-dev \
+        python3.12-venv \
+        python3-pip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    clang \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set the working directory
+# RUN useradd --create-home exo \
+#     && mkdir -p /home/exo/app \
+#     && chown -R exo:exo /home/exo/app
+# WORKDIR /home/exo/app
+# USER exo
+
+# Add local bin to PATH so that pip-installed executables are found
+# ENV PATH="/home/exo/.local/bin:${PATH}"
+RUN pip install llvmlite
+
+# Clone the exo repository and install the package
+RUN git clone https://github.com/exo-explore/exo.git \
+    && cd exo \
+    && pip install -e .
+
+# Expose the default port
+EXPOSE 52415
+
+# Set the entrypoint
+ENTRYPOINT ["exo"]
